@@ -1,0 +1,10 @@
+{
+  "icon": "atomist.svg",
+  "ui": {
+    "dashboard-tab": {
+      "title": "Image-Watcher",
+      "src": "index.html",
+      "root": "ui"
+    }
+  }
+}

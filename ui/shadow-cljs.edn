@@ -1,0 +1,5 @@
+{:deps {:aliases [:dev]}
+ :dev-http {8280 "."}
+ :builds {:app {:target :browser
+                :output-dir "build"
+                :modules {:app {:init-fn extension.core/init}}}}}

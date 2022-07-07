@@ -1,0 +1,9 @@
+{:paths ["src"]
+ :deps {org.clojure/clojurescript {:mvn/version "1.11.54"}
+        funcool/promesa {:mvn/version "8.0.450"}
+        reagent/reagent {:mvn/version "1.1.1"}
+        re-frame/re-frame {:mvn/version "1.2.0"}}
+ :aliases
+ {:dev {:extra-deps {org.clojure/clojure {:mvn/version "1.11.1"}
+                     thheller/shadow-cljs {:mvn/version "2.19.5"}}
+        :extra-paths ["test"]}}}

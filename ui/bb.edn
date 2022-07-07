@@ -1,0 +1,4 @@
+{:tasks 
+ {dev-up (shell "docker extension dev ui-source slimslenderslacks/watch-images http://localhost:8280")
+  debug (shell "docker extension dev debug slimslenderslacks/watch-images")
+  reset (shell "docker extension dev reset slimslenderslacks/watch-images")}}
