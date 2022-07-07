@@ -2,8 +2,21 @@
   (:require
    [cljs.core.async :refer [go <! >! chan close! put!] :as async]
    [reagent.dom :as rdom]
-   [re-frame.core :as re-frame]))
+   [re-frame.core :as re-frame]
+   [reagent.core :as r]
+   ["@mui/material/Card" :as MuiCard]
+   ["@mui/material/CardContent" :as MuiCardContent]
+   ["@mui/material/Typography" :as MuiTypography]))
 
+(def Card (doto
+           (r/adapt-react-class (.-default MuiCard))
+            ((fn [m] (set! (.-displayName m) "card")))))
+(def CardContent (doto
+                  (r/adapt-react-class (.-default MuiCardContent))
+                   ((fn [m] (set! (.-displayName m) "card-content")))))
+(def Typography (doto
+                 (r/adapt-react-class (.-default MuiTypography))
+                  ((fn [m] (set! (.-displayName m) "typography")))))
 ;; for now, always use js/window and statically serve these assets to the extension electron app
 (defn get-client
   []
@@ -40,7 +53,9 @@
   ;; TODO show some mui components
   (let [recent-events (re-frame/subscribe [::recent-events])]
     [:div
-     [:h3 "recent events"]
+     [Card {:sx {:minWidth 275}}
+      [CardContent
+       [Typography {:variant "h3" :sx {:fontSize 14} :color "text.secondary"} "recent events"]] ]
      [:table
       (for [{:keys [status id type action time]} @recent-events]
         [:tr
