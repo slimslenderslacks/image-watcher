@@ -13,7 +13,7 @@ Now close the desktop console and re-open it.  Click on the extension and it wil
 
 ## Using Mui Material components
 
-They're just regular components so we use the standard pattern.
+They're just regular components so we use the standard reagent pattern.
 
 ```clojure
 (defn view []
@@ -23,9 +23,9 @@ They're just regular components so we use the standard pattern.
         "recent events"]]])
 ```
 
-However, I created three symbols `Card`, `CardContent`, and `Typography` using some tricks that took me a bit of time to figure out so perhaps worth sharing.
+There are three symbols `Card`, `CardContent`, and `Typography` in the above view. We use some tricks that took some time to figure out what they should reference.  So worth documenting here.
 
-I require the mui components in the normal way.
+You build one by requiring it and then adapting it to reagent.
 
 ```clojure
 (ns whatever
@@ -36,11 +36,15 @@ I require the mui components in the normal way.
                  ((fn [m] (set! (.-displayName m) "typography")))))
 ```
 
-So you have to do a little ceremony to get the Symbol that you'll put in the function.  But then it's back to just functions producing data again.
+It's a little ceremony, but once it's complete, the views are just data again.
 
-* do the require of the npm module
-* remember that this is ES6 so the actual exports are in `(.-default MuiTypography)`
+* the `require` of the npm module uses the standard shadow-cljs method.
+* you need to know that this is ES6 so the actual exports are in `(.-default MuiTypography)`
 * The standard reagent adapter should work everywhere that doesn't pass Components as properties (I still don't understand why that's really ever needed - shouldn't that always be constrained to child nodes?)
 * I just set the `displayName` so things look nice in debuggers.
 
+That's it!
 
+## cljs build phase in Dockerfile
+
+Replace the template `client-builder` phase with a clojurescript one.

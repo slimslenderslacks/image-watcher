@@ -3,3 +3,4 @@ ui/build
 /ui/.clj-kondo/
 /ui/.cpcache/
 /ui/.shadow-cljs/
+/.clj-kondo/
