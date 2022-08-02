@@ -1,5 +1,8 @@
 {
   "icon": "atomist.svg",
+  "vm": {
+    "composefile": "docker-compose.yaml"
+  },
   "ui": {
     "dashboard-tab": {
       "title": "Image-Watcher",

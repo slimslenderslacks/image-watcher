@@ -1,0 +1,11 @@
+services:
+  backend:
+    image: ${DESKTOP_PLUGIN_IMAGE}
+    cap_add:
+      - DAC_OVERRIDE
+      - FOWNER
+    volumes:
+      - /var/run/docker.sock.raw:/var/run/docker.sock
+      - image-watcher-db:/var/image-watcher-db:rw
+volumes:
+  image-watcher-db: {}

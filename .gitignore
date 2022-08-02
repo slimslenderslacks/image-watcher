@@ -4,3 +4,7 @@ ui/build
 /ui/.cpcache/
 /ui/.shadow-cljs/
 /.clj-kondo/
+backend/.nrepl-port
+backend/.cpcache/
+backend/.clj-kondo/
+.nrepl-port

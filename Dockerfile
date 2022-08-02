@@ -31,7 +31,8 @@ RUN --mount=type=cache,target=/usr/src/app/.npm \
 COPY ui /ui
 RUN npx shadow-cljs release app
 
-FROM alpine
+FROM clojure:tools-deps
+
 LABEL org.opencontainers.image.title="image-watcher" \
     org.opencontainers.image.description="My awesome Docker extension" \
     org.opencontainers.image.vendor="Docker Inc." \
@@ -44,6 +45,12 @@ LABEL org.opencontainers.image.title="image-watcher" \
 
 WORKDIR /
 COPY metadata.json .
+COPY docker-compose.yaml .
 COPY atomist.svg .
 COPY ui/index.html ui/index.html
+COPY backend backend
 COPY --from=client-builder /ui/build ui/build
+
+WORKDIR /backend
+RUN clojure -P -M:jetty
+ENTRYPOINT ["clojure","-M:jetty"]
