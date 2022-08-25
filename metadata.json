@@ -1,13 +1,15 @@
 {
   "icon": "atomist.svg",
   "vm": {
-    "composefile": "docker-compose.yaml"
+    "composefile": "docker-compose.yaml",
+    "exposes": {"socket": "extension-backend.sock"}
   },
   "ui": {
     "dashboard-tab": {
       "title": "Image-Watcher",
       "src": "index.html",
-      "root": "ui"
+      "root": "ui",
+      "backend": {"socket": "extension-backend.sock"}
     }
   }
 }

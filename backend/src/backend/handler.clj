@@ -8,7 +8,8 @@
             [backend.events :as events]
             [ring.middleware.json :refer [wrap-json-response wrap-json-body]]
             [taoensso.timbre :as timbre]
-            [ring.core.protocols :refer [StreamableResponseBody]]))
+            [ring.core.protocols :refer [StreamableResponseBody]])
+  (:import [org.eclipse.jetty.unixsocket UnixSocketConnector]))
 
 ;; extend a core async channel using a ring core protocol that knows
 ;; how to handler a response body that is a channel
@@ -42,6 +43,13 @@
   [& {:keys [join?]}]
   (try
     (run-jetty #'app {:join? (if (false? join?) false true)
+                      :port 3000
+                      :configurator (fn [server]
+                                      (.addConnector server (doto
+                                                             (UnixSocketConnector. server)
+                                                              (.setAcceptQueueSize 128)
+                                                              (.setUnixSocket "/var/run/blah.sock")))
+                                      server)
                       :async? true})
     (catch Throwable t
       (timbre/errorf t "failed to start"))))

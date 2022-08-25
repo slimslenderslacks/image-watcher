@@ -1,7 +1,11 @@
 {:tasks 
  {:init (do (def image "slimslenderslacks/watch-images")
             (def shadow-http-port 8280))
-  dev-up (shell (format "docker extension dev ui-source %s http://localhost:%d" image shadow-http-port))
+  dev-up (do 
+           (shell (format "docker extension dev ui-source %s http://localhost:%d" image shadow-http-port))
+           (shell (format "docker extension dev debug %s" image)))
+  dev-down (do
+             (shell (format "docker extension dev reset %s" image)))
   debug (shell (format "docker extension dev debug %s" image))
   reset (shell (format "docker extension dev reset %s" image))
   build (shell (format "docker build -t %s ." image))

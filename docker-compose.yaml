@@ -7,5 +7,7 @@ services:
     volumes:
       - /var/run/docker.sock.raw:/var/run/docker.sock
       - image-watcher-db:/var/image-watcher-db:rw
+    # ports:
+      # - "3111:3000"
 volumes:
   image-watcher-db: {}

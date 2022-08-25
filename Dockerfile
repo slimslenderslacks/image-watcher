@@ -31,7 +31,8 @@ RUN --mount=type=cache,target=/usr/src/app/.npm \
 COPY ui /ui
 RUN npx shadow-cljs release app
 
-FROM clojure:tools-deps
+#FROM clojure:tools-deps
+FROM node:buster-slim
 
 LABEL org.opencontainers.image.title="image-watcher" \
     org.opencontainers.image.description="My awesome Docker extension" \
@@ -48,9 +49,12 @@ COPY metadata.json .
 COPY docker-compose.yaml .
 COPY atomist.svg .
 COPY ui/index.html ui/index.html
-COPY backend backend
 COPY --from=client-builder /ui/build ui/build
 
-WORKDIR /backend
-RUN clojure -P -M:jetty
-ENTRYPOINT ["clojure","-M:jetty"]
+COPY backend1/package*.* backend1/
+WORKDIR /backend1
+#RUN clojure -P -M:jetty
+RUN npm install nbb -g
+RUN npm ci
+COPY backend1/*.cljs .
+ENTRYPOINT ["nbb","app.cljs"]
