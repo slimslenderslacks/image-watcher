@@ -1,0 +1,129 @@
+^{:args [:digest]}
+[:find
+ (pull ?docker-image [:schema/entity-type
+                      :docker.image/created-at
+                      :docker.image/digest
+                      :docker.image/tags
+                      {:docker.image/layers [{:docker.image.layer/blob [:docker.image.blob/digest
+                                                                        :docker.image.blob/size]}
+                                             :docker.image.layer/ordinal
+                                             :docker.image.layer/created-by]}
+                      {(:docker.platform/_image :as :platform) [:docker.platform/architecture
+                                                                :docker.platform/os
+                                                                :docker.platform/variant]}
+                      {(:vulnerability.report/_package :as :report) [:vulnerability.report/last-updated
+                                                                     :vulnerability.report/critical
+                                                                     :vulnerability.report/high
+                                                                     :vulnerability.report/medium
+                                                                     :vulnerability.report/low
+                                                                     :vulnerability.report/unspecified
+                                                                     :vulnerability.report/total]}
+                      {:docker.image/commit [:git.commit/sha
+                                             {:git.commit/repo [:git.repo/name {:git.repo/org [:git.org/name]}]}
+                                             {(:git.ref/_commit :as :refs) [:git.ref/name
+                                                                            :git.ref/type]}
+                                             ]}
+                      {(:docker.tag/_image :as :tag) [:docker.tag/name]}
+                      {(:docker.manifest-list/_images :as :manifest-list) [{(:docker.tag/_manifest-list :as :tag) [:docker.tag/name]}]}
+                      {:docker.image/from [:docker.image/digest]}
+                      {:docker.image/repository [:docker.repository/badge
+                                                 :docker.repository/host
+                                                 :docker.repository/repository]}
+                      {:artifact/dependencies [{:package.dependency/package [:package/url
+                                                                             :package/author
+                                                                             :package/homepage
+                                                                             :package/size
+                                                                             :package/licenses
+                                                                             :package/description]}
+                                               {:package.dependency/files [:package.file/digest
+                                                                           :package.file/path]}
+                                               ]}
+                      ])
+ ?cves
+ :keys image cves
+ :in $ $before-db % ?ctx [?digest ...]
+ :where
+ [?docker-image :docker.image/digest ?digest]
+
+ [(q (quote
+       [:find ?url ?type ?version ?adv-url
+        :in $ ?image
+        :where
+        [?image :artifact/dependencies ?dep]
+        [?dep :package.dependency/package ?direct-package]
+        (or-join [?direct-package ?p]
+          [(identity ?direct-package) ?p]
+          (and
+            [(identity ?direct-package) ?maven-package]
+            [?project-dep :project.dependency/package ?maven-package]
+            [?project-dep :project.dependency/scope "module"]
+            [?p :project/dependencies ?project-dep]))
+        [?p :package/url ?url]
+        [?p :package/version ?version]
+        [?p :package/type ?type]
+        [?p :package/advisory-url ?adv-url]])
+    $ ?docker-image)
+  ?packages]
+
+ [(adb/query (quote [:find
+                     ?purl
+                     ?v-source-id
+                     ?v-severity
+                     ?cve-source-id
+                     ?cve-severity
+                     :in $ $b % ?ctx [?packages]
+                     :where
+                     [(untuple ?packages) [?package ...]]
+                     [(untuple ?package) [?purl ?type ?version ?url]]
+                     [?adv :vulnerability.advisory/url ?url]
+
+                     [?v :vulnerability/advisories ?adv]
+                     [?v :vulnerability/source ?source]
+                     [(missing? $ ?v :vulnerability/withdrawn-at)]
+                     [?adv :vulnerability.advisory/versions ?versions]
+                     [?versions :vulnerability.advisory.version/vulnerable-range ?range]
+                     (range-satisfied? ?type ?version ?source ?range)
+
+                     [?v :vulnerability/references ?ref]
+                     [?ref :vulnerability.reference/source "atomist"]
+                     [?ref :vulnerability.reference/scores ?score]
+                     [?score :vulnerability.reference.score/type "atm_severity"]
+                     [?score :vulnerability.reference.score/value ?v-severity]
+                     [?v :vulnerability/source-id ?v-source-id]
+
+                     (or-join [?v ?cve-source-id ?cve-severity]
+                       (and
+                         [?v :vulnerability/cve-id ?cve-source-id]
+                         [?cve :vulnerability/source-id ?cve-source-id]
+                         [?cve :vulnerability/source "nist"]
+                         [?cve :vulnerability/references ?ref]
+                         [?ref :vulnerability.reference/source "atomist"]
+                         [?ref :vulnerability.reference/scores ?score]
+                         [?score :vulnerability.reference.score/type "atm_severity"]
+                         [?score :vulnerability.reference.score/value ?cve-severity])
+                       (and
+                         [?v :vulnerability/source-id ?cve-source-id]
+                         [?cve :vulnerability/source-id ?cve-source-id]
+                         [?cve :vulnerability/source "nist"]
+                         [?cve :vulnerability/references ?ref]
+                         [?ref :vulnerability.reference/source "atomist"]
+                         [?ref :vulnerability.reference/scores ?score]
+                         [?score :vulnerability.reference.score/type "atm_severity"]
+                         [?score :vulnerability.reference.score/value ?cve-severity])
+                       (and
+                         (not-join [?v]
+                           [?v :vulnerability/cve-id ?cve-source-id]
+                           [?cve :vulnerability/source-id ?cve-source-id]
+                           [?cve :vulnerability/source "nist"]
+                           )
+                         (not-join [?v]
+                           [?v :vulnerability/source-id ?cve-source-id]
+                           [?cve :vulnerability/source-id ?cve-source-id]
+                           [?cve :vulnerability/source "nist"]
+                           )
+                         ([ground "n/a"] ?cve-source-id)
+                         ([ground "n/a"] ?cve-severity))
+                       )
+                     ])
+    ?packages)
+  ?cves]]

@@ -19,19 +19,11 @@
                  (r/adapt-react-class (.-default MuiTypography))
                   ((fn [m] (set! (.-displayName m) "typography")))))
 
-(let [service (.. js/window -ddClient -extension -vm -service)]
-  (.catch
-   (.then
-    (.get service "/db")
-    (fn [response]
-      (.log js/console (pr-str response))))
-   (fn [error] (println "error " error))))
-(println "hey")
 (let [service (.. js/window -ddClient -extension -vm -cli)]
   (.then
-     (.exec service "ls" (into-array []))
-     (fn [response]
-       (.log js/console (pr-str response)))))
+   (.exec service "curl" (into-array []))
+   (fn [response]
+     (.log js/console (pr-str response)))))
 
 (defn init-db-and-events
   [on-initialize-db on-event on-error]
@@ -40,11 +32,7 @@
      (.get service "/db")
      (fn [response]
        (.log js/console (pr-str response))
-       (on-initialize-db (-> response :body json/->obj))))
-    (.then
-     (.get service "/stream-events")
-     (fn [response]
-       (.log js/console (pr-str response))))))
+       (on-initialize-db (-> response :body json/->obj))))))
 
 (re-frame/reg-sub 
   ::recent-events
